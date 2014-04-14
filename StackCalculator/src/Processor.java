@@ -1,6 +1,8 @@
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 import java.io.*;
-import java.util.concurrent.ExecutionException;
+import java.util.regex.Pattern;
 
 /**
  * Created by VVykhor on 24.03.2014.
@@ -8,6 +10,7 @@ import java.util.concurrent.ExecutionException;
 public class Processor {
     private String sourceFile;
     private StackHolder stack = new StackHolder();
+    private Map<String, Double> variables = new HashMap<String, Double>();
 
     public void setFile(String fileName) {
         sourceFile = fileName;
@@ -17,35 +20,62 @@ public class Processor {
         Scanner in = new Scanner(new File(sourceFile));
         do {
             String operation = in.next();
-            System.out.println("Found operation "+operation);
-            if ("+".equals(operation)) {
-                double firstArg = stack.pop();
-                double secondArg = stack.pop();
-                stack.push(addition(firstArg, secondArg));
-            } else if ("-".equals(operation)) {
-                double firstArg = stack.pop();
-                double secondArg = stack.pop();
-                stack.push(subjection(firstArg, secondArg));
-            } else if ("*".equals(operation)) {
-                double firstArg = stack.pop();
-                double secondArg = stack.pop();
-                stack.push(multiplication(firstArg, secondArg));
-            } else if ("/".equals(operation)) {
-                double firstArg = stack.pop();
-                double secondArg = stack.pop();
-                stack.push(diviation(firstArg, secondArg));
-            } else if ("SQRT".equals(operation)) {
-                double firstArg = stack.pop();
-                stack.push(sqrt(firstArg));
-            } else if ("PUSH".equals(operation)) {
-                double value = in.nextDouble();
-                stack.push(value);
-            } else if ("POP".equals(operation)) {
-                System.out.println(stack.pop());
+            if(operation.startsWith("#")) {
+                System.out.println(operation + in.nextLine());
             } else {
-                System.out.println("Error: unknown operation");
+                System.out.println("Found operation " + operation);
+                if ("+".equals(operation)) {
+                    double firstArg = stack.pop();
+                    double secondArg = stack.pop();
+                    stack.push(addition(firstArg, secondArg));
+                } else if ("-".equals(operation)) {
+                    double firstArg = stack.pop();
+                    double secondArg = stack.pop();
+                    stack.push(subjection(firstArg, secondArg));
+                } else if ("*".equals(operation)) {
+                    double firstArg = stack.pop();
+                    double secondArg = stack.pop();
+                    stack.push(multiplication(firstArg, secondArg));
+                } else if ("/".equals(operation)) {
+                    double firstArg = stack.pop();
+                    double secondArg = stack.pop();
+                    stack.push(diviation(firstArg, secondArg));
+                } else if ("SQRT".equals(operation)) {
+                    double firstArg = stack.pop();
+                    stack.push(sqrt(firstArg));
+                } else if ("PUSH".equals(operation)) {
+                    double value;
+                    if(in.hasNextDouble()) {
+                        value = in.nextDouble();
+                    } else {
+                        String key = in.next();
+                        if(variables.containsKey(key)) {
+                            value = variables.get(key);
+                        } else {
+                            String msg = "Error: can not push value";
+                            throw new Exception(msg);
+                        }
+                    }
+                    stack.push(value);
+                } else if ("POP".equals(operation)) {
+                    stack.pop();
+                } else if ("PRINT".equals(operation)) {
+                    stack.print();
+                } else if ("DEFINE".equals(operation)) {
+                    String key = in.next();
+                    if(!in.hasNextDouble()) {
+                        String msg = "Error: can not define variable";
+                        throw new Exception(msg);
+                    } else {
+                        Double value = in.nextDouble();
+                        variables.put(key, value);
+                    }
+                } else {
+                    String msg = "Error: unknown operation";
+                    throw new Exception(msg);
+                }
             }
-        } while(in.hasNext());
+        } while(in.hasNextLine());
     }
 
     private double addition(double firstArg, double secondArg) {
