@@ -2,12 +2,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.io.*;
-import java.util.regex.Pattern;
+import org.apache.log4j.*;
 
 /**
  * Created by VVykhor on 24.03.2014.
  */
+
 public class Processor {
+    static Logger logger = Logger.getLogger(Processor.class);
     private String sourceFile;
     private StackHolder stack = new StackHolder();
     private Map<String, Double> variables = new HashMap<String, Double>();
@@ -23,7 +25,7 @@ public class Processor {
             if(operation.startsWith("#")) {
                 System.out.println(operation + in.nextLine());
             } else {
-                System.out.println("Found operation " + operation);
+                logger.debug("Found operation " + operation);
                 if ("+".equals(operation)) {
                     double firstArg = stack.pop();
                     double secondArg = stack.pop();
@@ -53,6 +55,7 @@ public class Processor {
                             value = variables.get(key);
                         } else {
                             String msg = "Error: can not push value";
+                            logger.error(msg);
                             throw new Exception(msg);
                         }
                     }
@@ -65,6 +68,7 @@ public class Processor {
                     String key = in.next();
                     if(!in.hasNextDouble()) {
                         String msg = "Error: can not define variable";
+                        logger.error(msg);
                         throw new Exception(msg);
                     } else {
                         Double value = in.nextDouble();
@@ -72,6 +76,7 @@ public class Processor {
                     }
                 } else {
                     String msg = "Error: unknown operation";
+                    logger.error(msg);
                     throw new Exception(msg);
                 }
             }
@@ -93,6 +98,7 @@ public class Processor {
     private double diviation(double firstArg, double secondArg) throws Exception {
         if(secondArg == 0) {
             String msg = "Error: division by 0";
+            logger.error(msg);
             throw new Exception(msg);
         } else {
             return firstArg / secondArg;
@@ -102,6 +108,7 @@ public class Processor {
     private double sqrt(double firstArg) throws Exception {
         if(firstArg < 0) {
             String msg = "Error: sqrt on negate argument";
+            logger.error(msg);
             throw new Exception(msg);
         } else {
             return java.lang.Math.sqrt(firstArg);
